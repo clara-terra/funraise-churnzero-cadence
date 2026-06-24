@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChurnZero Daily Cadence</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1a1a18;line-height:1.5;padding:20px 24px 40px}
+h1{font-size:18px;font-weight:600;color:#1a1a18;margin-bottom:4px}
+.sub{font-size:13px;color:#73726c;margin-bottom:16px}
+.day-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.day-tab{padding:6px 13px;border-radius:20px;border:1px solid #d3d1c7;background:transparent;font-size:12px;color:#73726c;cursor:pointer;font-family:inherit;transition:all .15s}
+.day-tab:hover{background:#f1efe8}
+.day-tab.active{background:#1a1a18;color:#fff;border-color:transparent}
+.ref-label{font-size:10px;color:#b4b2a9;padding:0 4px;align-self:center}
+.prog-wrap{display:flex;gap:4px;align-items:center;margin-bottom:14px}
+.prog-dot{height:4px;flex:1;border-radius:2px;background:#e8e6e0;transition:background .25s}
+.prog-dot.done{background:#1D9E75}
+.prog-dot.active{background:#1a1a18}
+.prog-lbl{font-size:11px;color:#73726c;margin-left:8px;white-space:nowrap}
+.card{border:1px solid #e8e6e0;border-radius:12px;background:#fff;overflow:hidden;margin-bottom:2px}
+.card-hdr{display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid #e8e6e0}
+.c-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.c-title{font-size:14px;font-weight:600;color:#1a1a18;flex:1}
+.c-sub{font-size:11px;color:#73726c;margin-top:2px}
+.c-status{font-size:11px;color:#b4b2a9;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.c-status.ok{color:#0F6E56}
+.card-body{padding:14px 16px}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #d3d1c7;background:transparent;font-size:12px;color:#1a1a18;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#f1efe8}
+.btn.primary{background:#1a1a18;color:#fff;border-color:transparent}
+.btn.primary:hover{background:#2c2c2a}
+.btn:disabled{opacity:.3;cursor:default}
+.btn:disabled:hover{background:transparent}
+.section-label{font-size:10px;font-weight:600;color:#888780;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;margin-top:14px}
+.section-label:first-child{margin-top:0}
+.checklist{display:flex;flex-direction:column;gap:7px}
+.ci{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+.cb{width:17px;height:17px;min-width:17px;border-radius:4px;border:1px solid #d3d1c7;display:flex;align-items:center;justify-content:center;transition:all .15s;background:#fff;margin-top:1px;font-size:11px;color:transparent}
+.cb.on{background:#1a1a18;border-color:transparent;color:#fff}
+.cl{font-size:13px;color:#1a1a18;line-height:1.4;user-select:none}
+.cl.x{color:#b4b2a9;text-decoration:line-through}
+.tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:600}
+.tr{background:#FCEBEB;color:#A32D2D}
+.ta{background:#FAEEDA;color:#854F0B}
+.tg{background:#EAF3DE;color:#3B6D11}
+.tb{background:#E6F1FB;color:#185FA5}
+.tp{background:#EEEDFE;color:#534AB7}
+.tgr{background:#F1EFE8;color:#5F5E5A}
+.rule{background:#f8f7f4;border-left:3px solid #1a1a18;border-radius:0 8px 8px 0;padding:10px 13px;margin-top:12px}
+.rule p{font-size:12px;color:#1a1a18;line-height:1.5}
+.done-banner{text-align:center;padding:18px 0 6px}
+.done-banner .di{font-size:28px;color:#1D9E75}
+.done-banner p{font-size:13px;color:#73726c;margin-top:6px}
+.cc-list{display:flex;flex-direction:column;gap:7px}
+.cc-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;border:1px solid #e8e6e0;cursor:pointer;transition:border-color .12s}
+.cc-item:hover{border-color:#d3d1c7}
+.cc-item.done-item{opacity:.55}
+.cc-left{flex:1}
+.cc-name{font-size:13px;font-weight:600;color:#1a1a18;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.cc-desc{font-size:11px;color:#73726c;margin-top:3px;line-height:1.4}
+.cc-tick{width:17px;height:17px;min-width:17px;border-radius:4px;border:1px solid #d3d1c7;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px;flex-shrink:0;font-size:11px;color:transparent}
+.cc-tick.on{background:#1a1a18;border-color:transparent;color:#fff}
+.msg-list{display:flex;flex-direction:column;gap:7px}
+.msg-item{border:1px solid #e8e6e0;border-radius:8px;overflow:hidden}
+.msg-row{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;transition:background .12s}
+.msg-row:hover{background:#f8f7f4}
+.msg-from{font-size:13px;font-weight:600;color:#1a1a18;flex:1}
+.msg-sub{font-size:11px;color:#73726c;margin-top:1px}
+.msg-panel{border-top:1px solid #e8e6e0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.msg-actions{display:flex;gap:6px;flex-wrap:wrap}
+.msg-btn{padding:5px 11px;border-radius:6px;border:1px solid #d3d1c7;background:transparent;font-size:11px;color:#1a1a18;cursor:pointer;font-family:inherit;transition:all .15s}
+.msg-btn:hover{background:#f1efe8}
+.msg-btn.sel-send{background:#EAF3DE;border-color:#3B6D11;color:#27500A;font-weight:600}
+.msg-btn.sel-reject{background:#FCEBEB;border-color:#A32D2D;color:#791F1F;font-weight:600}
+.msg-btn.sel-review{background:#E6F1FB;border-color:#185FA5;color:#0C447C;font-weight:600}
+.reject-area{display:flex;flex-direction:column;gap:4px}
+.reject-area label{font-size:11px;color:#73726c}
+textarea{width:100%;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid #d3d1c7;background:#f8f7f4;color:#1a1a18;font-family:inherit;resize:vertical;min-height:50px;outline:none}
+textarea:focus{border-color:#888780}
+input[type=text]{font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #d3d1c7;background:#f8f7f4;color:#1a1a18;font-family:inherit;outline:none;width:100%}
+input[type=text]:focus{border-color:#888780}
+.save-btn{padding:5px 12px;border-radius:6px;border:1px solid #d3d1c7;background:transparent;font-size:12px;color:#1a1a18;cursor:pointer;font-family:inherit;transition:all .15s;align-self:flex-start}
+.save-btn:hover{background:#f1efe8}
+.save-btn:disabled{opacity:.35;cursor:default}
+.saved-badge{font-size:11px;color:#0F6E56;display:flex;align-items:center;gap:4px}
+.chevron{font-size:13px;color:#b4b2a9;margin-left:6px;display:inline-block;transition:transform .15s}
+.chevron.open{transform:rotate(180deg)}
+.sig-list{display:flex;flex-direction:column;gap:8px}
+.sig-item{border:1px solid #e8e6e0;border-radius:8px;overflow:hidden}
+.sig-row{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;transition:background .12s}
+.sig-row:hover{background:#f8f7f4}
+.sig-acct{font-size:13px;font-weight:600;color:#1a1a18;flex:1}
+.sig-meta{font-size:11px;color:#73726c;margin-top:2px;display:flex;gap:4px;flex-wrap:wrap}
+.sig-panel{border-top:1px solid #e8e6e0;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.al-row{display:flex;align-items:center;gap:8px}
+.al-cb{width:16px;height:16px;min-width:16px;border-radius:4px;border:1px solid #d3d1c7;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#fff;font-size:10px;color:transparent}
+.al-cb.on{background:#1a1a18;border-color:transparent;color:#fff}
+.al-label{font-size:12px;color:#1a1a18;cursor:pointer;user-select:none}
+.dismiss-area{padding:8px 10px;border-radius:8px;background:#f8f7f4;border:1px solid #e8e6e0;display:flex;flex-direction:column;gap:5px}
+.dismiss-area label{font-size:11px;color:#73726c}
+.plist{display:flex;flex-direction:column;gap:7px}
+.pi{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:8px;border:1px solid #e8e6e0;background:#f8f7f4}
+.ptag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.p1{background:#FCEBEB;color:#A32D2D}
+.p2{background:#FAEEDA;color:#854F0B}
+.p3{background:#E6F1FB;color:#185FA5}
+.p4{background:#EAF3DE;color:#3B6D11}
+.pi-text{font-size:13px;color:#1a1a18;line-height:1.4}
+.pi-sub{font-size:11px;color:#73726c;margin-top:2px}
+.flow{display:flex;flex-direction:column}
+.fi{display:flex;gap:10px;align-items:flex-start}
+.fl{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0}
+.fdot{width:8px;height:8px;border-radius:50%;background:#1a1a18;margin-top:4px;flex-shrink:0}
+.fline{width:1px;background:#d3d1c7;flex:1;min-height:14px}
+.ft{font-size:13px;color:#1a1a18;padding-bottom:12px;line-height:1.4}
+.ft em{font-style:normal;font-size:11px;color:#73726c;display:block;margin-top:2px}
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{text-align:left;font-weight:600;color:#73726c;padding:5px 7px;border-bottom:1px solid #e8e6e0;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.stbl td{padding:6px 7px;border-bottom:1px solid #e8e6e0;color:#1a1a18;vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:hover td{background:#f8f7f4}
+.health-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:1px solid #e8e6e0;cursor:pointer;transition:border-color .12s;margin-bottom:7px}
+.health-item:hover{border-color:#d3d1c7}
+.health-item.done-item{opacity:.55}
+.health-note{font-size:11px;color:#73726c;margin-top:3px}
+</style>
+</head>
+<body>
+
+<h1 id="day-title">Daily flow — Command Center</h1>
+<p class="sub" id="day-desc">Follow every step in order — Signals and Health are part of this flow</p>
+
+<div class="day-tabs">
+  <button class="day-tab active" onclick="setDay('daily')">Daily flow</button>
+  <button class="day-tab" onclick="setDay('monday')">Monday</button>
+  <button class="day-tab" onclick="setDay('tuesday')">Tuesday</button>
+  <button class="day-tab" onclick="setDay('mid')">Wed – Thu</button>
+  <button class="day-tab" onclick="setDay('friday')">Friday</button>
+  <span class="ref-label">Reference:</span>
+  <button class="day-tab" onclick="setDay('ref_signals')">Signals</button>
+  <button class="day-tab" onclick="setDay('ref_health')">Health</button>
+</div>
+
+<div id="content"></div>
+
+<script>
+var S={day:'daily',step:0,checks:{},ccDone:{},msgAction:{},msgRejectReason:{},msgSaved:{},msgOpen:{},sigAction:{},sigNotes:{},sigSaved:{},sigOpen:{}};
+
+var CC_CARDS=[
+  {key:'cc1',ico:'⚠',fg:'#A32D2D',name:'Accounts at churn risk',tag:'tr',tagText:'Retention',desc:'Red ChurnScore or Critical/High Business Risk. Every account here must have an open task with a next step.'},
+  {key:'cc2',ico:'💔',fg:'#854F0B',name:'Red Relationship Score',tag:'ta',tagText:'Relationship',desc:'Understand why the relationship score is red. Review recent interactions, open notes, and decide if outreach is needed.'},
+  {key:'cc3',ico:'👤',fg:'#534AB7',name:'High-value accounts — no engagement (30 days)',tag:'tp',tagText:'Engagement',desc:'VIP and High accounts with no meaningful engagement in the last 30 days. Create a touchpoint task for each.'},
+  {key:'cc4',ico:'🕐',fg:'#185FA5',name:'Accounts needing interaction',tag:'tb',tagText:'Activity',desc:'Accounts with no CSM activity beyond the defined threshold. Check if any VIP/High are in this list first.'},
+  {key:'cc5',ico:'📅',fg:'#3B6D11',name:'Upcoming renewals',tag:'tg',tagText:'Renewal',desc:'Accounts renewing in the next 90 days without a confirmed plan. Create or update a task for each.'},
+  {key:'cc6',ico:'😞',fg:'#A32D2D',name:'Contacts with negative sentiment',tag:'tr',tagText:'VIP/High only',desc:'Review sentiment source for VIP and High accounts only. Add a note and decide if a call or direct outreach is needed.'}
+];
+
+var MSGS=[
+  {id:'m1',from:'Sarah K. — Greenfield Nonprofit',sub:'Follow-up after onboarding check-in',preview:'Automated follow-up scheduled after last week\'s call.'},
+  {id:'m2',from:'Auto-play: Low adoption alert — Harbor Foundation',sub:'30-day no-login nudge',preview:'Tech-touch email triggered by adoption signal.'},
+  {id:'m3',from:'QBR prep reminder — Coastal Alliance',sub:'Upcoming QBR in 7 days',preview:'Internal reminder to prepare QBR deck.'}
+];
+
+var SIGS=[
+  {id:'s1',acct:'Greenfield Nonprofit',tier:'VIP',type:'Risk',conf:'High',impact:'High',imm:'Urgent'},
+  {id:'s2',acct:'Harbor Foundation',tier:'High',type:'Risk',conf:'High',impact:'Medium',imm:'Timely'},
+  {id:'s3',acct:'Coastal Alliance',tier:'Medium',type:'Opportunity',conf:'High',impact:'High',imm:'Timely'},
+  {id:'s4',acct:'Sunrise Community',tier:'Low',type:'Risk',conf:'High',impact:'High',imm:'Immediate'}
+];
+
+var HEALTH_ITEMS=[
+  {id:'h1',acct:'Riverside Fund',change:'Green → Red',tier:'VIP',note:'Score dropped — usage and relationship both declined'},
+  {id:'h2',acct:'Summit Alliance',change:'Yellow → Red',tier:'High',note:'Renewal in 45 days — needs immediate review'},
+  {id:'h3',acct:'Metro Foundation',change:'Red → Yellow',tier:'Medium',note:'Recovery after outreach — close old tasks, consider expansion'}
+];
+
+function tc(t){return t==='VIP'?'tr':t==='High'?'ta':t==='Medium'?'tb':'tg'}
+function ic(i){return i==='Urgent'||i==='Immediate'?'tr':i==='Timely'?'ta':'tg'}
+function tyc(t){return t==='Risk'?'tr':'tg'}
+function chk(key,idx){if(!S.checks[key])S.checks[key]={};S.checks[key][idx]=!S.checks[key][idx];render();}
+function doneCount(key,n){var c=S.checks[key]||{};return Object.values(c).filter(Boolean).length;}
+function toggleCC(key){S.ccDone[key]=!S.ccDone[key];render();}
+function toggleMsg(id){S.msgOpen[id]=!S.msgOpen[id];render();}
+function setMsgAction(id,action){S.msgAction[id]=action;if(action!=='reject')delete S.msgRejectReason[id];render();}
+function saveMsg(id){if(S.msgAction[id]==='reject'&&!(S.msgRejectReason[id]||'').trim())return;S.msgSaved[id]=true;S.msgOpen[id]=false;render();}
+function storeMsgReason(id,v){S.msgRejectReason[id]=v;}
+function toggleSig(id){S.sigOpen[id]=!S.sigOpen[id];render();}
+function toggleSigA(id,action){if(!S.sigAction[id])S.sigAction[id]={};S.sigAction[id][action]=!S.sigAction[id][action];if(action==='dismissed'){['note','task','risk','escalated'].forEach(function(a){S.sigAction[id][a]=false;});}else{S.sigAction[id]['dismissed']=false;}render();}
+function storeSigNote(key,v){S.sigNotes[key]=v;}
+function saveSig(id){var a=S.sigAction[id]||{};if(a.dismissed&&!(S.sigNotes[id+'_dismiss']||'').trim())return;S.sigSaved[id]=true;S.sigOpen[id]=false;render();}
+
+function buildCC(){
+  var done=Object.values(S.ccDone).filter(Boolean).length;
+  var h='<div class="cc-list">';
+  CC_CARDS.forEach(function(c){
+    var d=!!S.ccDone[c.key];
+    h+='<div class="cc-item'+(d?' done-item':'')+'" onclick="toggleCC(\''+c.key+'\')">';
+    h+='<div class="cc-left"><div class="cc-name"><span style="font-size:16px">'+c.ico+'</span>'+c.name+'<span class="tag '+c.tag+'">'+c.tagText+'</span></div>';
+    h+='<div class="cc-desc">'+c.desc+'</div></div>';
+    h+='<div class="cc-tick'+(d?' on':'')+'">'+( d?'✓':'')+'</div></div>';
+  });
+  h+='</div>';
+  if(done>0)h+='<div style="margin-top:8px;font-size:11px;color:#73726c">'+done+' / '+CC_CARDS.length+' cards reviewed</div>';
+  return h;
+}
+
+function buildMsgs(){
+  var saved=Object.values(S.msgSaved).filter(Boolean).length;
+  var h='<div class="msg-list">';
+  MSGS.forEach(function(m){
+    var a=S.msgAction[m.id];var sv=S.msgSaved[m.id];var open=S.msgOpen[m.id];
+    h+='<div class="msg-item"><div class="msg-row" onclick="toggleMsg(\''+m.id+'\')">';
+    h+='<div style="flex:1"><div class="msg-from">'+m.from+'</div><div class="msg-sub">'+m.sub+'</div></div>';
+    if(sv){var lbl=a==='send'?'Sent':a==='reject'?'Rejected':'Needs review';var cls=a==='send'?'tg':a==='reject'?'tr':'tb';h+='<span class="tag '+cls+'">'+lbl+'</span>';}
+    h+='<span class="chevron'+(open&&!sv?' open':'')+'">▾</span></div>';
+    if(open&&!sv){
+      h+='<div class="msg-panel"><div style="font-size:11px;color:#73726c;margin-bottom:2px">'+m.preview+'</div>';
+      h+='<div class="msg-actions">';
+      h+='<button class="msg-btn'+(a==='send'?' sel-send':'')+'" onclick="setMsgAction(\''+m.id+'\',\'send\')">✉ Send</button>';
+      h+='<button class="msg-btn'+(a==='reject'?' sel-reject':'')+'" onclick="setMsgAction(\''+m.id+'\',\'reject\')">✕ Reject</button>';
+      h+='<button class="msg-btn'+(a==='review'?' sel-review':'')+'" onclick="setMsgAction(\''+m.id+'\',\'review\')">👁 Needs review</button>';
+      h+='</div>';
+      if(a==='reject'){h+='<div class="reject-area"><label>Reason for rejection</label><textarea placeholder="Why is this message being rejected? (e.g. wrong timing, account in save plan, content not appropriate)…" oninput="storeMsgReason(\''+m.id+'\',this.value)">'+(S.msgRejectReason[m.id]||'')+'</textarea></div>';}
+      var canSave=a==='send'||a==='review'||(a==='reject'&&(S.msgRejectReason[m.id]||'').trim().length>0);
+      h+='<button class="save-btn" onclick="saveMsg(\''+m.id+'\')"'+(canSave?'':' disabled')+'>Save ✓</button></div>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  if(saved>0)h+='<div style="margin-top:8px;font-size:11px;color:#0F6E56">✓ '+saved+' / '+MSGS.length+' messages actioned</div>';
+  h+='<div class="rule" style="margin-top:10px"><p>These are sample messages. In ChurnZero, review your actual message queue — send, reject (with reason), or flag for further review.</p></div>';
+  return h;
+}
+
+function buildSigs(){
+  var saved=Object.values(S.sigSaved).filter(Boolean).length;
+  var h='<div class="sig-list">';
+  SIGS.forEach(function(s){
+    var a=S.sigAction[s.id]||{};var sv=S.sigSaved[s.id];var open=S.sigOpen[s.id];
+    var hasA=a.note||a.task||a.risk||a.escalated||a.dismissed;
+    h+='<div class="sig-item"><div class="sig-row" onclick="toggleSig(\''+s.id+'\')">';
+    h+='<div style="flex:1"><div class="sig-acct">'+s.acct+'</div>';
+    h+='<div class="sig-meta"><span class="tag '+tc(s.tier)+'">'+s.tier+'</span> <span class="tag '+tyc(s.type)+'">'+s.type+'</span> <span class="tag '+ic(s.imm)+'">'+s.imm+'</span> <span class="tag tb">Conf: '+s.conf+'</span> <span class="tag tgr">Impact: '+s.impact+'</span></div></div>';
+    if(sv){var pts=[];if(a.note)pts.push('Note');if(a.task)pts.push('Task');if(a.risk)pts.push('Risk updated');if(a.escalated)pts.push('Escalated');if(a.dismissed)pts.push('Dismissed');h+='<span class="saved-badge">✓ '+pts.join(' · ')+'</span>';}
+    else if(hasA){h+='<span class="c-status">✎ In progress</span>';}
+    h+='<span class="chevron'+(open&&!sv?' open':'')+'">▾</span></div>';
+    if(open&&!sv){
+      h+='<div class="sig-panel"><div style="font-size:11px;font-weight:600;color:#73726c;margin-bottom:4px">Log your action for this signal</div>';
+      var aList=[{key:'note',label:'Note created',ph:'Note content or summary…'},{key:'task',label:'Task created',ph:'Task description…'},{key:'risk',label:'Business Risk updated',ph:'New risk level and reason…'},{key:'escalated',label:'Escalated to manager',ph:'Reason for escalation…'}];
+      aList.forEach(function(al){
+        var on=!!a[al.key];
+        h+='<div style="margin-bottom:4px"><div class="al-row"><div class="al-cb'+(on?' on':'')+'" onclick="toggleSigA(\''+s.id+'\',\''+al.key+'\')">'+( on?'✓':'')+'</div>';
+        h+='<span class="al-label" onclick="toggleSigA(\''+s.id+'\',\''+al.key+'\')">'+al.label+'</span></div>';
+        if(on)h+='<div style="margin-top:4px;padding-left:24px"><input type="text" placeholder="'+al.ph+'" oninput="storeSigNote(\''+s.id+'_'+al.key+'\',this.value)" value="'+(S.sigNotes[s.id+'_'+al.key]||'')+'"></div>';
+        h+='</div>';
+      });
+      var dis=!!a.dismissed;
+      h+='<div class="dismiss-area"><div class="al-row" style="margin-bottom:'+(dis?'6px':'0')+'"><div class="al-cb'+(dis?' on':'')+'" onclick="toggleSigA(\''+s.id+'\',\'dismissed\')">'+( dis?'✓':'')+'</div>';
+      h+='<span class="al-label" onclick="toggleSigA(\''+s.id+'\',\'dismissed\')">Signal dismissed — not relevant for this account</span></div>';
+      if(dis){h+='<label>Reason for dismissal</label><textarea placeholder="Why is this signal not relevant? (e.g. account is healthy in other indicators, renewal 2+ years away, already managing this risk)…" oninput="storeSigNote(\''+s.id+'_dismiss\',this.value)">'+(S.sigNotes[s.id+'_dismiss']||'')+'</textarea>';}
+      h+='</div>';
+      var canSave=a.note||a.task||a.risk||a.escalated||(a.dismissed&&(S.sigNotes[s.id+'_dismiss']||'').trim().length>0);
+      h+='<button class="save-btn" onclick="saveSig(\''+s.id+'\')"'+(canSave?'':' disabled')+'>Save log ✓</button>';
+      if(!canSave&&a.dismissed)h+='<div style="font-size:11px;color:#73726c;margin-top:3px">Add a dismissal reason before saving.</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  if(saved>0)h+='<div style="margin-top:8px;font-size:11px;color:#0F6E56">✓ '+saved+' / '+SIGS.length+' signals logged</div>';
+  h+='<div class="rule" style="margin-top:10px"><p>These are sample signals. In ChurnZero, work through your actual signal list — every relevant signal must have a logged action before moving on.</p></div>';
+  return h;
+}
+
+function buildHealthReview(){
+  var h='<div class="section-label">Account health changes since last review</div>';
+  HEALTH_ITEMS.forEach(function(hh){
+    var done=!!S.ccDone['hl_'+hh.id];
+    var moveCls=hh.change.includes('Red →')&&!hh.change.includes('→ Red')?'tg':(hh.change.includes('→ Red')?'tr':'ta');
+    h+='<div class="health-item'+(done?' done-item':'')+'" onclick="toggleCC(\'hl_'+hh.id+'\')">';
+    h+='<span class="tag '+moveCls+'">'+hh.change+'</span>';
+    h+='<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1a1a18;">'+hh.acct+'</div><div class="health-note">'+hh.note+'</div></div>';
+    h+='<span class="tag '+tc(hh.tier)+'">'+hh.tier+'</span>';
+    h+='<div class="cc-tick'+(done?' on':'')+'">'+( done?'✓':'')+'</div></div>';
+  });
+  var hdone=HEALTH_ITEMS.filter(function(hh){return S.ccDone['hl_'+hh.id];}).length;
+  if(hdone>0)h+='<div style="margin-top:8px;font-size:11px;color:#73726c">'+hdone+' / '+HEALTH_ITEMS.length+' health changes reviewed</div>';
+  h+='<div class="rule" style="margin-top:10px"><p>For accounts that worsened: review profile, check renewal, create a next step. For accounts that improved: close old tasks, reduce Business Risk if appropriate, log what worked.</p></div>';
+  return h;
+}
+
+function buildChecklist(key,items){
+  var h='<div class="checklist">';
+  items.forEach(function(item,idx){
+    var on=S.checks[key]&&S.checks[key][idx];
+    h+='<div class="ci" onclick="chk(\''+key+'\','+idx+')">';
+    h+='<div class="cb'+(on?' on':'')+'">'+( on?'✓':'')+'</div>';
+    h+='<span class="cl'+(on?' x':'')+'">'+item+'</span></div>';
+  });
+  h+='</div>';return h;
+}
+
+function buildFlow(items){
+  var h='<div class="flow">';
+  items.forEach(function(item,idx){
+    var last=idx===items.length-1;
+    h+='<div class="fi"><div class="fl"><div class="fdot"></div>'+(last?'':'<div class="fline"></div>')+'</div>';
+    h+='<div class="ft">'+item.text+'<em>'+item.detail+'</em></div></div>';
+  });
+  h+='</div>';return h;
+}
+
+function buildPriority(items){
+  var h='<div class="plist">';
+  items.forEach(function(item){
+    h+='<div class="pi"><span class="ptag '+item.cls+'">'+item.badge+'</span><div><div class="pi-text">'+item.text+'</div><div class="pi-sub">'+item.sub+'</div></div></div>';
+  });
+  h+='</div>';return h;
+}
+
+function buildRefTable(rows){
+  var h='<div style="overflow-x:auto"><table class="stbl"><thead><tr><th>Signal</th><th>Action</th></tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr><td>'+r[0]+'</td><td><span class="tag '+r[2]+'">'+r[1]+'</span></td></tr>';});
+  h+='</tbody></table></div>';return h;
+}
+
+var DAYS={
+  daily:{title:'Daily flow — Command Center',desc:'Follow every step in order — Signals and Health are part of this flow, not separate.',steps:[
+    {ico:'📋',bg:'#E6F1FB',fg:'#185FA5',title:'1. Tasks and messages',sub:'Always start here before opening any account',statusKey:'d1',
+     body:function(){return '<div class="section-label">Overdue and due-today tasks</div>'+buildChecklist('d1',['Review all overdue tasks — close, reschedule, or escalate each one','Check tasks due today — confirm execution plan for the day','Create tasks identified from yesterday that are still pending'])+'<div class="section-label" style="margin-top:14px">Messages to review</div>'+buildMsgs();}},
+    {ico:'🗂',bg:'#EAF3DE',fg:'#3B6D11',title:'2. Command Center cards',sub:'Work through all cards — do not skip any',body:function(){return buildCC();}},
+    {ico:'⚠',bg:'#FCEBEB',fg:'#A32D2D',title:'3. Risk Signals — review and log',sub:'Every relevant signal must have a logged action before you move on',
+     body:function(){return buildSigs()+'<div class="section-label" style="margin-top:14px">Priority order</div>'+buildPriority([{badge:'P1',cls:'p1',text:'Risk + VIP/High + Immediate/Urgent + High Confidence',sub:'Same-day action. Task + note + consider Business Risk update.'},{badge:'P2',cls:'p2',text:'Risk + VIP/High + Timely',sub:'Evaluate during the week. Follow-up if needed.'},{badge:'P3',cls:'p3',text:'Risk + Medium + any immediacy',sub:'Urgency depends on renewal date.'},{badge:'P4',cls:'p4',text:'Risk + Low — Impact High or renewal within 90 days only',sub:'Tech-touch unless signal is severe.'}]);}},
+    {ico:'📊',bg:'#FAEEDA',fg:'#854F0B',title:'4. Health changes',sub:'What changed in your book since the last review?',body:function(){return buildHealthReview();}},
+    {ico:'📈',bg:'#EEEDFE',fg:'#534AB7',title:'5. Opportunity Signals',sub:'Expansion — only after all risk and health items are covered',
+     body:function(){return buildPriority([{badge:'P1',cls:'p1',text:'Opportunity + VIP/High + High Confidence',sub:'Review expansion path. Involve AE/sales if applicable.'},{badge:'P2',cls:'p2',text:'Opportunity + Medium + High Confidence',sub:'Create follow-up task. Connect with renewal or QBR.'},{badge:'P3',cls:'p3',text:'Opportunity + upcoming renewal or strong adoption',sub:'Include in renewal strategy.'}]);}},
+    {ico:'✎',bg:'#F1EFE8',fg:'#5F5E5A',title:'6. Close the loop',sub:'Confirm everything is logged before ending your session',statusKey:'d6',
+     body:function(){return buildChecklist('d6',['Every relevant Signal has a logged action (note, task, risk update, or dismissed with reason)','All Command Center cards reviewed and actioned','Health changes reviewed — tasks created or updated where needed','Business Risk updated where validated','Messages actioned — sent, rejected with reason, or flagged','No overdue tasks left without a plan','Escalations flagged to manager if needed'])+'<div class="rule" style="margin-top:12px"><p>Signals tell you what changed. Health tells you who moved. ChurnScore shows where risk is. Tasks show what you are doing about it.</p></div>';}}
+  ]},
+  monday:{title:'Monday — Signal review',desc:'New signals drop at the start of the week. Identify top risks before any meetings.',steps:[
+    {ico:'🔍',bg:'#FCEBEB',fg:'#A32D2D',title:'Work signals in this order',sub:'Complete each filter before moving to the next',body:function(){return buildFlow([{text:'Risk + High Confidence + VIP/High + Immediate/Urgent',detail:'Same-day action required. Task + note + consider Business Risk.'},{text:'Risk + High Confidence + VIP/High + Timely',detail:'Evaluate during the week.'},{text:'Risk + High Confidence + Medium + Immediate/Urgent/Timely',detail:'Priority depends on renewal proximity.'},{text:'Risk + Low — Impact High or renewal within 90 days only',detail:'Tech-touch unless severe.'},{text:'Opportunity + High Confidence + VIP/High/Medium',detail:'After all risk signals are handled.'}]);}},
+    {ico:'✓',bg:'#EAF3DE',fg:'#3B6D11',title:'Expected output by mid-morning',sub:'Before your first call of the week',statusKey:'mon1',body:function(){return buildChecklist('mon1',['Top risk actions identified and tasks created','All P1 signals logged with note and action','Escalations flagged to manager','Messages reviewed and actioned','Opportunity signals queued for follow-up']);}}
+  ]},
+  tuesday:{title:'Tuesday — Follow-up and prioritization',desc:'Ensure every important signal from this week has an action.',steps:[
+    {ico:'?',bg:'#E6F1FB',fg:'#185FA5',title:'Ask these questions for each signal',sub:'Answer honestly before deciding what to do',statusKey:'t1',body:function(){return buildChecklist('t1',['Is this signal true and relevant for this account?','Does it change the risk level?','Does it require action now?','Is there already an open task related to this?','Do I need to update Business Risk?','Do I need to add a note?','Is this an expansion opportunity?','Do I need to escalate to my manager?']);}},
+    {ico:'↗',bg:'#EEEDFE',fg:'#534AB7',title:'Decision → action map',sub:'Reference for every signal outcome',body:function(){return '<div style="overflow-x:auto"><table class="stbl"><thead><tr><th>Situation</th><th>Action</th></tr></thead><tbody><tr><td>Signal relevant and urgent</td><td><span class="tag tr">Task + Note + Business Risk</span></td></tr><tr><td>Signal relevant, not urgent</td><td><span class="tag ta">Follow-up or monitor</span></td></tr><tr><td>Signal covered by existing task</td><td><span class="tag tb">Update task / note</span></td></tr><tr><td>Signal not relevant</td><td><span class="tag tb">Dismiss with reason logged</span></td></tr><tr><td>Signal indicates expansion</td><td><span class="tag tp">Expansion follow-up task</span></td></tr><tr><td>Signal confirms churn</td><td><span class="tag tr">Move to confirmed non-renewal process</span></td></tr></tbody></table></div>';}}
+  ]},
+  mid:{title:'Wednesday and Thursday — Execution',desc:'Focus on working what was prioritized at the start of the week.',steps:[
+    {ico:'📞',bg:'#EAF3DE',fg:'#3B6D11',title:'Customer outreach and execution',sub:'Work the actions created on Monday and Tuesday',statusKey:'mid1',body:function(){return buildChecklist('mid1',['Execute outreach for at-risk accounts','Work active save plans','Run adoption plays in progress','Prepare or conduct scheduled QBRs','Advance expansion conversations']);}},
+    {ico:'🔄',bg:'#FAEEDA',fg:'#854F0B',title:'Keep Command Center updated',sub:'Log everything as you go — do not batch updates to Friday',statusKey:'mid2',body:function(){return buildChecklist('mid2',['Update tasks as you make progress','Add notes after every customer interaction','Reassess Business Risk if outreach changed anything','Close completed tasks']);}}
+  ]},
+  friday:{title:'Friday — Cleanup and reflection',desc:'Close the week with a clean Command Center.',steps:[
+    {ico:'✓',bg:'#EAF3DE',fg:'#3B6D11',title:'End-of-week review',sub:'Before logging off',statusKey:'f1',body:function(){return buildChecklist('f1',['Review tasks closed this week','Verify Business Risk was updated where needed','Check accounts that improved or worsened','Identify any signals still without a logged action','List items to bring to your 1:1']);}},
+    {ico:'💬',bg:'#E6F1FB',fg:'#185FA5',title:'For your 1:1',sub:'Come prepared — not just with problems',statusKey:'f2',body:function(){return buildChecklist('f2',['Accounts with real risk that need visibility or support','Pending escalations','Relevant expansion opportunities','What worked in save plans this week','Accounts that need special attention next week']);}}
+  ]},
+  ref_signals:{title:'Reference — Signals',desc:'Quick-reference for signal interpretation and action mapping.',steps:[
+    {ico:'🛡',bg:'#FCEBEB',fg:'#A32D2D',title:'Risk Signal → retention action',sub:'Signal-to-action mapping',body:function(){return buildRefTable([['Risk + Urgent + VIP/High','Same-day review + task + note','tr'],['Risk + High Impact + renewal <90 days','Consider High / Critical Risk','tr'],['Risk + Medium account','Follow-up within the week','ta'],['Risk + Low account','Tech-touch','tb'],['Repeated risk signals','Escalate or build save plan','tr'],['Risk + Red ChurnScore','Prioritize immediately','tr']]);}},
+    {ico:'📈',bg:'#EAF3DE',fg:'#3B6D11',title:'Opportunity Signal → expansion action',sub:'Signal-to-action mapping',body:function(){return buildRefTable([['Opportunity + VIP/High','Review expansion path','tp'],['Opportunity + high adoption','Create follow-up task','tg'],['Opportunity + upcoming renewal','Include in renewal strategy','tp'],['Opportunity + usage growth','Consider upsell / cross-sell','tg'],['Opportunity + Medium','Evaluate readiness for growth','tb'],['Opportunity + Low','Tech-touch or nurture','tb']]);}},
+    {ico:'ℹ',bg:'#EEEDFE',fg:'#534AB7',title:'When to update Business Risk',sub:'Not every signal should change Business Risk',body:function(){return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="padding:10px 12px;border-radius:8px;border:1px solid #e8e6e0"><div style="font-size:12px;font-weight:600;color:#0F6E56;margin-bottom:6px">✓ Update when</div><div style="font-size:12px;color:#73726c;line-height:1.5">Signal confirms a real concern · evidence of churn or dissatisfaction · renewal within 90 days · relevant financial impact · signal is repeated · CSM validates risk is real</div></div><div style="padding:10px 12px;border-radius:8px;border:1px solid #e8e6e0"><div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:6px">✕ Do not update when</div><div style="font-size:12px;color:#73726c;line-height:1.5">Signal is weak or lacks context · account is healthy on other indicators · renewal 2+ years away · signal does not represent real churn risk · action plan is in place and controlled</div></div></div>';}}
+  ]},
+  ref_health:{title:'Reference — Health tab',desc:'Use the Health tab to answer: what changed in my book since last review?',steps:[
+    {ico:'⚠',bg:'#FCEBEB',fg:'#A32D2D',title:'P1 — Accounts that moved to Red / High Risk',sub:'Immediate action required',statusKey:'rh1',body:function(){return buildChecklist('rh1',['Review account profile','Identify which factors pulled the score down','Check renewal date','Review existing open tasks','Create next step if none exists','Update Business Risk if validated']);}},
+    {ico:'⭐',bg:'#FAEEDA',fg:'#854F0B',title:'P2 — VIP/High accounts that worsened',sub:'Any deterioration matters — even before Red',statusKey:'rh2',body:function(){return buildChecklist('rh2',['Understand what changed','Review Relationship Score','Review active Risk Signals','Review usage and engagement','Decide if outreach is needed']);}},
+    {ico:'↑',bg:'#EAF3DE',fg:'#3B6D11',title:'P5 — Accounts that improved',sub:'Improvements also require action',statusKey:'rh5',body:function(){return buildChecklist('rh5',['Close or update old tasks','Reduce Business Risk level if appropriate','Add a note recording the recovery','Log what worked','Identify if strong adoption opens an expansion opportunity']);}}
+  ]}
+};
+
+var KEY_LENGTHS={d1:3,d6:7,mon1:5,t1:8,mid1:5,mid2:4,f1:5,f2:5,rh1:6,rh2:5,rh5:5};
+
+function getStatus(s){
+  if(!s.statusKey)return '';
+  var total=KEY_LENGTHS[s.statusKey]||0;
+  var done=doneCount(s.statusKey,total);
+  if(done===total&&total>0)return '<span class="c-status ok">✓ Done</span>';
+  if(done>0)return '<span class="c-status">'+done+'/'+total+'</span>';
+  return '';
+}
+
+function render(){
+  var day=DAYS[S.day];var steps=day.steps;var total=steps.length;var s=steps[S.step];
+  var h='<div class="prog-wrap">';
+  for(var i=0;i<total;i++){var cls=i<S.step?'done':i===S.step?'active':'';h+='<div class="prog-dot '+cls+'"></div>';}
+  h+='<span class="prog-lbl">'+(S.step+1)+' / '+total+'</span></div>';
+  h+='<div class="card"><div class="card-hdr">';
+  h+='<div class="c-icon" style="background:'+s.bg+'">'+s.ico+'</div>';
+  h+='<div style="flex:1"><div class="c-title">'+s.title+'</div><div class="c-sub">'+s.sub+'</div></div>';
+  h+=getStatus(s);
+  h+='</div><div class="card-body">'+s.body()+'</div></div>';
+  h+='<div class="nav-row">';
+  h+='<button class="btn" onclick="prevStep()"'+(S.step===0?' disabled':'')+'>← Previous</button>';
+  if(S.step<total-1){h+='<button class="btn primary" onclick="nextStep()">Next →</button>';}
+  else{h+='<button class="btn primary" onclick="S.step=0;render()">↺ Restart</button>';}
+  h+='</div>';
+  if(S.step===total-1){h+='<div class="done-banner"><div class="di">✓</div><p>Cadence complete — all steps reviewed.</p></div>';}
+  document.getElementById('content').innerHTML=h;
+  document.getElementById('day-title').textContent=day.title;
+  document.getElementById('day-desc').textContent=day.desc;
+}
+
+function nextStep(){var d=DAYS[S.day];if(S.step<d.steps.length-1){S.step++;render();}}
+function prevStep(){if(S.step>0){S.step--;render();}}
+function setDay(d){
+  S.day=d;S.step=0;
+  var keys=['daily','monday','tuesday','mid','friday','ref_signals','ref_health'];
+  document.querySelectorAll('.day-tab').forEach(function(t,i){t.classList.toggle('active',keys[i]===d);});
+  render();
+}
+render();
+</script>
+</body>
+</html>
